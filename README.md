@@ -1,3 +1,7 @@
+![PWA](https://img.shields.io/badge/PWA-ready-5A6FAE?style=for-the-badge&logo=pwa)
+![Mobile Friendly](https://img.shields.io/badge/Mobile-friendly-FF9ECF?style=for-the-badge&logo=android)
+![Offline](https://img.shields.io/badge/Offline-supported-8BC34A?style=for-the-badge&logo=googlechrome)
+
 # kenangan
 
 Web kenangan interaktif berbentuk **Progressive Web App (PWA)**  
