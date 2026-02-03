@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff9ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Kenangan 💕</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Poppins,Arial,sans-serif;
+  background:linear-gradient(135deg,#e8f0ff,#ffe6f2);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body.night{
+  background:linear-gradient(135deg,#1f2235,#2b1f33);
+  color:#eee;
+}
+
+/* ===== INTERACTIVE BG ===== */
+canvas{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+
+/* ===== HEADER ===== */
+header{text-align:center;padding:30px 20px}
+h1{
+  margin:0;
+  font-family:"Great Vibes",cursive;
+  font-size:2.8rem;
+  color:#5a6fae;
+}
+body.night h1{color:#ffd6ea}
+
+/* ===== COUNTDOWN ===== */
+.counter{
+  margin-top:12px;
+  background:rgba(255,255,255,.7);
+  display:inline-block;
+  padding:12px 20px;
+  border-radius:18px;
+  box-shadow:0 10px 20px rgba(0,0,0,.15);
+  font-size:.95rem;
+}
+body.night .counter{
+  background:rgba(40,40,60,.75);
+}
+.counter b{
+  font-size:1.05rem;
+  color:#ff6fae;
+}
+
+/* ===== BUTTON ===== */
+.add-btn,.night-btn{
+  position:fixed;
+  bottom:20px;
+  border:none;
+  padding:14px 18px;
+  border-radius:50px;
+  font-size:18px;
+  cursor:pointer;
+  color:#fff;
+  z-index:10;
+}
+.add-btn{right:20px;background:#ff9ecf}
+.night-btn{left:20px;background:#5a6fae}
+
+/* ===== GALLERY ===== */
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:35px;
+  padding:20px 30px 120px;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:#fff;
+  padding:10px 10px 22px;
+  border-radius:18px;
+  box-shadow:0 15px 30px rgba(0,0,0,.18);
+  transform-origin:top center;
+  animation:gantung var(--dur) ease-in-out infinite;
+}
+body.night .card{background:#2a2d45}
+.card:hover{animation-play-state:paused}
+
+/* ===== GANTUNGAN ===== */
+.hanger{position:relative;height:30px}
+.rope{
+  position:absolute;top:-30px;width:2px;height:40px;background:#caa36a
+}
+.rope.left{left:30%;transform:rotate(-12deg)}
+.rope.right{right:30%;transform:rotate(12deg)}
+body.night .rope{background:#aaa}
+
+.hanger::after{
+  content:"💖";
+  font-size:16px;
+  position:absolute;
+  top:-38px;left:50%;
+  transform:translateX(-50%);
+  animation:pinBounce 2s ease-in-out infinite;
+}
+
+/* ===== FRAME ===== */
+.frame{
+  background:#fafafa;
+  padding:10px;
+  border-radius:14px;
+  box-shadow:inset 0 0 0 3px #fff,0 10px 25px rgba(0,0,0,.25);
+}
+body.night .frame{background:#1e213a}
+.frame img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+/* ===== CONTENT ===== */
+.content{padding-top:8px}
+.content b{color:#5a6fae}
+body.night .content b{color:#ffd6ea}
+.content p{font-size:.9rem;color:#666}
+body.night .content p{color:#ccc}
+
+.card button{
+  border:none;border-radius:8px;
+  padding:5px 8px;font-size:.75rem;
+  cursor:pointer;
+}
+.del{background:#ff6b6b;color:#fff}
+
+/* ===== MODAL ===== */
+.modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.4);
+  align-items:center;justify-content:center;
+  z-index:20;
+}
+.modal.show{display:flex}
+.modal-content{
+  background:#fff;padding:20px;
+  border-radius:20px;width:90%;
+  max-width:420px;
+}
+body.night .modal-content{background:#2a2d45;color:#eee}
+input,textarea{
+  width:100%;padding:10px;margin:8px 0;
+  border-radius:10px;border:1px solid #ccc;
+}
+
+/* ===== ANIMASI ===== */
+@keyframes gantung{
+  0%{transform:rotate(calc(var(--swing) * -1))}
+  50%{transform:rotate(var(--swing))}
+  100%{transform:rotate(calc(var(--swing) * -1))}
+}
+@keyframes pinBounce{
+  0%,100%{transform:translateX(-50%) rotate(-10deg)}
+  50%{transform:translateX(-50%) rotate(8deg)}
+}
+</style>
+</head>
+
+<body>
+
+  <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+<canvas id="bg"></canvas>
+
+<header>
+  <h1>Kenangan 💕</h1>
+  <div class="counter" id="counter"></div>
+</header>
+
+<div class="gallery" id="gallery"></div>
+
+<button class="night-btn" onclick="toggleNight()">🌙</button>
+<button class="add-btn" onclick="openModal()">➕</button>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <input type="file" id="img">
+    <input id="title" placeholder="Judul kenangan">
+    <textarea id="desc" placeholder="Cerita singkat"></textarea>
+    <button onclick="save()">Simpan 💕</button>
+  </div>
+</div>
+
+<script>
+/* ===== NIGHT ===== */
+function toggleNight(){
+  document.body.classList.toggle("night");
+}
+
+/* ===== COUNT UP JADIAN ===== */
+const startDate = new Date("2024-12-22T00:00:00");
+const counter = document.getElementById("counter");
+
+function updateCounter(){
+  const now = new Date();
+  let diff = now - startDate;
+
+  const days = Math.floor(diff / (1000*60*60*24));
+  diff %= 1000*60*60*24;
+  const hours = Math.floor(diff / (1000*60*60));
+  diff %= 1000*60*60;
+  const mins = Math.floor(diff / (1000*60));
+  const secs = Math.floor((diff % (1000*60))/1000);
+
+  counter.innerHTML = `
+    💖 Jadian <b>03-02-2004</b><br>
+    ⏳ Bersama <b>${days}</b> hari 
+    ${hours}j ${mins}m ${secs}d
+  `;
+}
+setInterval(updateCounter,1000);
+updateCounter();
+
+/* ===== MEMORIES ===== */
+const gallery=document.getElementById("gallery");
+const modal=document.getElementById("modal");
+let memories=JSON.parse(localStorage.getItem("memories"))||[];
+
+function render(){
+  gallery.innerHTML="";
+  memories.forEach((m,i)=>{
+    gallery.innerHTML+=`
+    <div class="card">
+      <div class="hanger">
+        <span class="rope left"></span>
+        <span class="rope right"></span>
+      </div>
+      <div class="frame">
+        <img src="${m.img}">
+      </div>
+      <div class="content">
+        <b>${m.title}</b>
+        <p>${m.desc}</p>
+        <button class="del" onclick="del(${i})">🗑</button>
+      </div>
+    </div>`;
+  });
+  randomSwing();
+}
+render();
+
+function openModal(){modal.classList.add("show")}
+modal.onclick=e=>{if(e.target===modal)modal.classList.remove("show")}
+
+function save(){
+  const file=img.files[0];
+  if(!file)return alert("Pilih foto dulu 💕");
+  const r=new FileReader();
+  r.onload=e=>{
+    memories.unshift({
+      img:e.target.result,
+      title:title.value||"Kenangan",
+      desc:desc.value||"Manis 🤍"
+    });
+    localStorage.setItem("memories",JSON.stringify(memories));
+    render();
+    modal.classList.remove("show");
+    img.value=title.value=desc.value="";
+  };
+  r.readAsDataURL(file);
+}
+function del(i){
+  memories.splice(i,1);
+  localStorage.setItem("memories",JSON.stringify(memories));
+  render();
+}
+function randomSwing(){
+  document.querySelectorAll(".card").forEach(card=>{
+    card.style.setProperty("--swing",(Math.random()*2+0.6)+"deg");
+    card.style.setProperty("--dur",(Math.random()*3+3)+"s");
+  });
+}
+
+/* ===== INTERACTIVE PARTICLE BG ===== */
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
+let w,h,particles=[];
+function resize(){
+  w=canvas.width=innerWidth;
+  h=canvas.height=innerHeight;
+}
+window.onresize=resize;resize();
+
+for(let i=0;i<60;i++){
+  particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:Math.random()*2+1,
+    vx:(Math.random()-.5)*0.6,
+    vy:(Math.random()-.5)*0.6
+  });
+}
+function animate(){
+  ctx.clearRect(0,0,w,h);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>w)p.vx*=-1;
+    if(p.y<0||p.y>h)p.vy*=-1;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="rgba(255,180,220,.6)";
+    ctx.fill();
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
