@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenangan Kita 🤍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pink:#F2A7B8;--pink-l:#FDE8EE;--pink-p:#FFF0F5;
+  --mint:#A8D8C2;--mint-l:#DFF2EA;--lavender:#C4B5E8;--lav-l:#EDE8FA;
+  --peach:#F9C89B;--peach-l:#FEF0E0;--sky:#9DCFEA;--sky-l:#DFF0FA;
+  --butter:#F7E47A;--cream:#FFFAF7;--white:#FFFFFF;
+  --ink:#4A3540;--muted:#9E8090;--border:rgba(242,167,184,0.22);
+  --serif:'Playfair Display',serif;--sans:'Nunito',sans-serif;--string:#C8A87A;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* ── AUTH OVERLAY ── */
+#authOverlay{display:flex;position:fixed;inset:0;background:linear-gradient(135deg,#FFF0F5 0%,#EDE8FA 50%,#DFF2EA 100%);z-index:9999;align-items:center;justify-content:center;padding:1rem;}
+#authOverlay.hidden{display:none;}
+.auth-card{background:white;border-radius:28px;padding:2.5rem 2rem;max-width:380px;width:100%;box-shadow:0 24px 64px rgba(242,167,184,0.28),0 4px 16px rgba(0,0,0,0.07);animation:authIn 0.5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes authIn{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.auth-logo{text-align:center;margin-bottom:1.75rem;}
+.auth-logo .hearts{font-size:1.8rem;letter-spacing:0.4rem;display:block;margin-bottom:0.5rem;}
+.auth-logo h1{font-family:var(--serif);font-size:1.9rem;font-weight:400;color:var(--ink);}
+.auth-logo h1 em{font-style:italic;color:var(--pink);}
+.auth-logo p{font-size:0.78rem;color:var(--muted);font-weight:300;margin-top:0.25rem;}
+.auth-tabs{display:flex;background:var(--pink-p);border-radius:14px;padding:4px;margin-bottom:1.5rem;}
+.auth-tab{flex:1;padding:0.55rem;border:none;background:transparent;border-radius:11px;font-family:var(--sans);font-size:0.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.auth-tab.active{background:white;color:var(--ink);box-shadow:0 2px 10px rgba(242,167,184,0.35);}
+.auth-field{margin-bottom:1rem;}
+.auth-field label{display:block;font-size:0.7rem;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.35rem;}
+.auth-field input{width:100%;background:var(--pink-p);border:1.5px solid rgba(242,167,184,0.3);border-radius:12px;padding:0.7rem 1rem;font-family:var(--sans);font-size:0.875rem;color:var(--ink);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.auth-field input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(242,167,184,0.18);}
+.btn-auth{width:100%;background:linear-gradient(135deg,var(--pink),#F98FA8);color:white;border:none;padding:0.9rem;border-radius:14px;font-family:var(--serif);font-size:1rem;font-style:italic;cursor:pointer;transition:opacity 0.2s,transform 0.15s;box-shadow:0 6px 20px rgba(242,167,184,0.45);margin-top:0.5rem;letter-spacing:0.02em;}
+.btn-auth:hover{opacity:0.88;transform:translateY(-2px);}
+.btn-auth:disabled{opacity:0.55;cursor:not-allowed;transform:none;}
+.auth-msg{text-align:center;font-size:0.78rem;margin-top:0.875rem;min-height:1.2em;border-radius:10px;padding:0.45rem;}
+.auth-msg.error{color:#C0607A;background:var(--pink-l);}
+.auth-msg.success{color:#3a7a5a;background:var(--mint-l);}
+
+/* ── TOP BAR ── */
+.top-bar{display:flex;justify-content:flex-end;align-items:center;padding:0.75rem 1.25rem 0;position:relative;z-index:10;gap:0.75rem;}
+.user-badge{display:flex;align-items:center;gap:0.5rem;background:white;border:1px solid var(--border);border-radius:99px;padding:0.35rem 0.9rem 0.35rem 0.45rem;font-size:0.75rem;color:var(--muted);box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:0.72rem;color:white;font-weight:700;}
+.btn-logout{background:none;border:1.5px solid rgba(242,167,184,0.45);border-radius:99px;padding:0.35rem 0.9rem;font-family:var(--sans);font-size:0.72rem;color:var(--muted);cursor:pointer;transition:all 0.2s;font-weight:500;}
+.btn-logout:hover{background:var(--pink-l);color:#C0607A;border-color:var(--pink);}
+
+/* ── STARS ── */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;animation:twinkle var(--dur,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:0.12;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
+
+/* ── CLOTHESLINE ── */
+.clothesline-wrap{position:relative;width:100%;min-height:200px;padding:0 0 1rem;overflow:hidden;z-index:2;}
+.rope{position:absolute;top:38px;left:-2%;width:104%;height:3px;background:linear-gradient(90deg,var(--string),#B8905A,var(--string));border-radius:2px;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,0.12);}
+.rope::before,.rope::after{content:'';position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;background:#B8905A;box-shadow:0 2px 4px rgba(0,0,0,0.2);}
+.rope::before{left:2%;}.rope::after{right:2%;}
+.hang-row{display:flex;gap:1rem;padding:14px 1.25rem 1.5rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;position:relative;z-index:2;}
+.hang-row::-webkit-scrollbar{display:none;}
+.photo-hang{flex-shrink:0;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;position:relative;transform-origin:top center;animation:hangIn 0.6s cubic-bezier(.34,1.56,.64,1) both;cursor:pointer;}
+@keyframes hangIn{from{opacity:0;transform:rotate(-12deg) translateY(-30px)}to{opacity:1;transform:rotate(var(--rot,0deg)) translateY(0)}}
+.photo-hang:hover{animation:swing 0.5s ease-in-out forwards;}
+@keyframes swing{0%{transform:rotate(var(--rot,0deg))}25%{transform:rotate(calc(var(--rot,0deg)+6deg))}75%{transform:rotate(calc(var(--rot,0deg)-4deg))}100%{transform:rotate(var(--rot,0deg))}}
+.pin{width:13px;height:13px;border-radius:50%;margin-bottom:-2px;position:relative;z-index:3;box-shadow:0 2px 5px rgba(0,0,0,0.2);flex-shrink:0;}
+.hang-string{width:2px;height:20px;background:var(--string);opacity:0.7;flex-shrink:0;}
+.polaroid{background:white;padding:5px 5px 24px;border-radius:3px;box-shadow:0 4px 16px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.08);width:100px;position:relative;transition:box-shadow 0.25s;}
+.photo-hang:hover .polaroid{box-shadow:0 10px 32px rgba(0,0,0,0.18);}
+.polaroid img{width:100%;height:78px;object-fit:cover;display:block;border-radius:1px;filter:saturate(0.92) contrast(1.04);}
+.polaroid-caption{position:absolute;bottom:0;left:0;right:0;height:22px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.polaroid-caption span{font-family:var(--serif);font-style:italic;font-size:0.5rem;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.polaroid-sticker{position:absolute;top:-10px;right:-8px;font-size:1.2rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.2));animation:stickerBounce 2.2s ease-in-out infinite;}
+@keyframes stickerBounce{0%,100%{transform:rotate(15deg) scale(1)}50%{transform:rotate(22deg) scale(1.25)}}
+
+/* ── HEADER ── */
+header{text-align:center;padding:2.5rem 1.5rem 1.25rem;position:relative;z-index:2;}
+.hearts-float{font-size:1.3rem;letter-spacing:0.6rem;margin-bottom:0.75rem;display:block;}
+.hearts-float span{display:inline-block;animation:floatH var(--fd,2s) ease-in-out infinite var(--fd2,0s);}
+@keyframes floatH{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+header h1{font-family:var(--serif);font-size:clamp(2rem,7vw,3rem);font-weight:400;line-height:1.15;margin-bottom:0.5rem;}
+header h1 em{font-style:italic;color:var(--pink);}
+.header-sub{font-size:0.82rem;color:var(--muted);font-weight:300;letter-spacing:0.07em;margin-bottom:1rem;}
+.date-badge{display:inline-block;background:var(--pink-l);color:#C0607A;font-size:0.72rem;font-weight:600;letter-spacing:0.05em;padding:0.38rem 1.1rem;border-radius:99px;border:1.5px solid rgba(242,167,184,0.4);cursor:pointer;transition:background 0.2s,transform 0.15s;}
+.date-badge:hover{background:#F9D5DE;transform:scale(1.03);}
+
+/* ── COUNTER ── */
+.counter-row{display:flex;justify-content:center;gap:0.5rem;flex-wrap:wrap;padding:0 1.25rem 1.5rem;position:relative;z-index:2;}
+.counter-pill{display:flex;align-items:center;gap:0.4rem;background:white;border:1px solid var(--border);border-radius:99px;padding:0.38rem 1rem;font-size:0.75rem;color:var(--muted);font-weight:500;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.counter-pill b{color:var(--ink);font-size:0.92rem;font-weight:700;}
+
+/* ── LOVE METER ── */
+.love-meter-wrap{max-width:440px;margin:0 auto 2rem;padding:0 1.25rem;position:relative;z-index:2;}
+.love-meter-card{background:white;border-radius:20px;padding:1.1rem 1.4rem;border:1px solid var(--border);box-shadow:0 4px 18px rgba(0,0,0,0.06);display:flex;align-items:center;gap:1rem;}
+.meter-icon{font-size:2rem;flex-shrink:0;animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.meter-label{font-size:0.72rem;color:var(--muted);font-weight:400;margin-bottom:0.3rem;}
+.meter-bar-wrap{flex:1;}
+.meter-bar-bg{height:11px;background:var(--pink-l);border-radius:99px;overflow:hidden;}
+.meter-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pink),#F98FA8,var(--peach));transition:width 1.4s cubic-bezier(.22,1,.36,1);width:0%;}
+.meter-val{font-size:0.72rem;color:var(--muted);text-align:right;margin-top:0.25rem;}
+
+/* ── QUOTE ── */
+.quote-wrap{max-width:440px;margin:0 auto 2rem;padding:0 1.25rem;position:relative;z-index:2;}
+.quote-card{background:linear-gradient(135deg,var(--lav-l),var(--pink-l));border-radius:20px;padding:1.3rem 1.4rem 1.1rem;border:1px solid rgba(196,181,232,0.3);text-align:center;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
+.quote-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(196,181,232,0.25);}
+.quote-text{font-family:var(--serif);font-style:italic;font-size:0.92rem;color:var(--ink);line-height:1.65;margin-bottom:0.5rem;}
+.quote-hint{font-size:0.68rem;color:var(--muted);letter-spacing:0.05em;}
+
+/* ── UPLOAD ── */
+.upload-section{max-width:440px;margin:0 auto 1.5rem;padding:0 1.25rem;position:relative;z-index:2;}
+.upload-box{background:white;border:2px dashed rgba(242,167,184,0.5);border-radius:22px;padding:1.75rem 1.25rem;text-align:center;cursor:pointer;transition:border-color 0.25s,background 0.25s,transform 0.2s;position:relative;}
+.upload-box:hover,.upload-box.drag-over{border-color:var(--pink);background:var(--pink-p);transform:scale(1.015);}
+.upload-box input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:2.2rem;margin-bottom:0.5rem;display:block;animation:bounceCam 2s ease-in-out infinite;}
+@keyframes bounceCam{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-5px) rotate(5deg)}}
+.upload-box h3{font-family:var(--serif);font-size:1.05rem;font-weight:400;margin-bottom:0.25rem;}
+.upload-box p{font-size:0.78rem;color:var(--muted);font-weight:300;}
+#captionForm{display:none;margin-top:1rem;background:white;border:1px solid var(--border);border-radius:20px;padding:1.3rem;animation:slideDown 0.3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.preview-strip{display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:0.5rem;margin-bottom:1rem;scrollbar-width:none;}
+.preview-strip::-webkit-scrollbar{display:none;}
+.preview-thumb{width:60px;height:60px;object-fit:cover;border-radius:10px;border:2.5px solid transparent;flex-shrink:0;cursor:pointer;transition:border-color 0.2s,transform 0.15s;}
+.preview-thumb:hover{transform:scale(1.06);}
+.preview-thumb.selected{border-color:var(--pink);}
+.form-field{margin-bottom:0.875rem;}
+.form-field label{display:block;font-size:0.7rem;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.35rem;}
+.form-field input,.form-field textarea{width:100%;background:var(--pink-p);border:1.5px solid rgba(242,167,184,0.3);border-radius:11px;padding:0.62rem 0.95rem;font-family:var(--sans);font-size:0.875rem;font-weight:400;color:var(--ink);outline:none;transition:border-color 0.2s,box-shadow 0.2s;resize:none;}
+.form-field input:focus,.form-field textarea:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(242,167,184,0.18);}
+.form-field textarea{height:70px;line-height:1.55;}
+.mood-row{display:flex;gap:0.45rem;flex-wrap:wrap;}
+.mood-btn{background:var(--pink-p);border:1.5px solid var(--border);border-radius:99px;padding:0.3rem 0.85rem;font-size:0.8rem;cursor:pointer;transition:all 0.18s;font-family:var(--sans);color:var(--muted);}
+.mood-btn.active,.mood-btn:hover{background:var(--pink-l);border-color:var(--pink);color:#C0607A;}
+.btn-save{width:100%;background:linear-gradient(135deg,var(--pink),#F98FA8);color:white;border:none;padding:0.85rem;border-radius:14px;font-family:var(--serif);font-size:1rem;font-style:italic;cursor:pointer;transition:opacity 0.2s,transform 0.15s;box-shadow:0 6px 20px rgba(242,167,184,0.45);}
+.btn-save:hover{opacity:0.88;transform:translateY(-2px);}
+.btn-save:disabled{opacity:0.55;cursor:not-allowed;transform:none;}
+
+/* ── FILTER ── */
+.filter-bar{display:flex;gap:0.45rem;overflow-x:auto;padding:0 1.25rem 1rem;max-width:920px;margin:0 auto;scrollbar-width:none;position:relative;z-index:2;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-btn{flex-shrink:0;background:white;border:1.5px solid var(--border);color:var(--muted);padding:0.38rem 1rem;border-radius:99px;font-family:var(--sans);font-size:0.75rem;cursor:pointer;transition:all 0.18s;white-space:nowrap;font-weight:500;}
+.filter-btn.active{background:var(--pink);border-color:var(--pink);color:white;}
+.filter-btn:hover:not(.active){background:var(--pink-l);border-color:var(--pink);}
+
+/* ── GALLERY 3-COLUMN GRID ── */
+.gallery-wrap{max-width:920px;margin:0 auto;padding:0 1rem 5rem;position:relative;z-index:2;}
+#gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem 0.9rem;align-items:start;}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);grid-column:1/-1;}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:1rem;display:block;}
+.empty-state p{font-size:0.88rem;font-weight:300;line-height:1.65;}
+
+/* ── MEMORY CARD (compact 3-col) ── */
+.memory-card{background:white;border-radius:16px;position:relative;box-shadow:0 4px 16px rgba(0,0,0,0.09),0 1px 3px rgba(0,0,0,0.05);transform:rotate(var(--card-rot,0deg));transform-origin:center top;transition:transform 0.3s,box-shadow 0.3s;animation:cardDrop 0.5s cubic-bezier(.34,1.4,.64,1) both;cursor:pointer;overflow:hidden;margin-top:1.6rem;}
+@keyframes cardDrop{from{opacity:0;transform:rotate(var(--card-rot,0deg)) scale(0.85) translateY(-18px)}to{opacity:1;transform:rotate(var(--card-rot,0deg)) scale(1) translateY(0)}}
+.memory-card:hover{transform:rotate(0deg) scale(1.04) translateY(-5px);box-shadow:0 14px 38px rgba(0,0,0,0.15);z-index:10;}
+.card-string{position:absolute;top:-26px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+.card-pin{width:11px;height:11px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.2);margin-bottom:-1px;z-index:3;flex-shrink:0;}
+.card-string-line{width:2px;height:20px;background:linear-gradient(to bottom,var(--string),rgba(200,168,122,0.2));border-radius:1px;}
+.pin-c0{background:#F2A7B8;}.pin-c1{background:#A8D8C2;}.pin-c2{background:#C4B5E8;}.pin-c3{background:#F9C89B;}.pin-c4{background:#9DCFEA;}
+.mood-ribbon{position:absolute;top:8px;right:0;background:var(--pink-l);color:#C0607A;font-size:0.58rem;font-weight:700;letter-spacing:0.03em;padding:0.15rem 0.5rem 0.15rem 0.4rem;border-radius:3px 0 0 3px;box-shadow:1px 1px 4px rgba(0,0,0,0.1);z-index:2;}
+.card-img-wrap{overflow:hidden;border-radius:14px 14px 0 0;position:relative;}
+.card-img-wrap img{width:100%;display:block;height:130px;object-fit:cover;filter:saturate(0.9) contrast(1.03);transition:transform 0.5s,filter 0.3s;}
+.memory-card:hover .card-img-wrap img{transform:scale(1.07);filter:saturate(1.05) contrast(1.06);}
+.multi-badge{position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,0.52);color:white;font-size:0.6rem;padding:2px 6px;border-radius:99px;}
+.card-body{padding:0.6rem 0.7rem 0.4rem;}
+.card-date{font-size:0.6rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:0.2rem;}
+.card-title{font-family:var(--serif);font-size:0.88rem;font-weight:400;color:var(--ink);margin-bottom:0.2rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-caption{font-size:0.7rem;color:var(--muted);font-weight:300;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-tags{display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.4rem;}
+.tag-chip{background:var(--pink-p);color:var(--muted);font-size:0.58rem;padding:0.1rem 0.45rem;border-radius:99px;border:1px solid rgba(242,167,184,0.25);}
+.card-owner{margin-top:0.35rem;}
+.owner-badge{display:inline-flex;align-items:center;gap:0.2rem;background:var(--sky-l);color:#4a7fa5;font-size:0.6rem;font-weight:600;padding:0.1rem 0.45rem;border-radius:99px;border:1px solid rgba(157,207,234,0.4);}
+.card-actions{display:flex;justify-content:space-between;align-items:center;padding:0.35rem 0.7rem 0.55rem;border-top:1px solid rgba(242,167,184,0.15);}
+.card-react-row{display:flex;gap:0.25rem;flex-wrap:wrap;}
+.react-btn{background:none;border:1px solid var(--border);border-radius:99px;padding:0.15rem 0.45rem;font-size:0.68rem;cursor:pointer;transition:transform 0.15s,background 0.15s;color:var(--muted);display:flex;align-items:center;gap:0.2rem;}
+.react-btn:hover{transform:scale(1.15);background:var(--pink-l);}
+.react-btn.reacted{background:var(--pink-l);border-color:var(--pink);color:#C0607A;}
+.del-btn{background:none;border:none;font-size:0.9rem;cursor:pointer;opacity:0.35;transition:opacity 0.2s,transform 0.15s;flex-shrink:0;}
+.del-btn:hover{opacity:1;transform:scale(1.2);}
+
+/* ── LIGHTBOX ── */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(44,31,30,0.92);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+.lightbox.open{display:flex;}
+.lightbox-inner{background:white;border-radius:16px;max-width:460px;width:100%;overflow:hidden;animation:cardDrop 0.3s ease;position:relative;}
+.lb-img-wrap{position:relative;background:#f5ecea;}
+.lb-img-wrap img{width:100%;max-height:60vh;object-fit:contain;display:block;}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.88);border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;box-shadow:0 2px 10px rgba(0,0,0,0.15);}
+.lb-nav:hover{background:white;}.lb-nav.prev{left:8px;}.lb-nav.next{right:8px;}
+.lb-dots{display:flex;gap:5px;justify-content:center;padding:6px 0 2px;}
+.lb-dot{width:6px;height:6px;border-radius:50%;background:var(--pink-l);transition:background 0.2s,transform 0.2s;cursor:pointer;}
+.lb-dot.active{background:var(--pink);transform:scale(1.3);}
+.lb-body{padding:1rem 1.2rem 1.2rem;}
+.lb-date{font-size:0.68rem;color:var(--pink);letter-spacing:0.07em;margin-bottom:0.25rem;font-weight:600;}
+.lb-title{font-family:var(--serif);font-size:1.15rem;font-weight:400;color:var(--ink);margin-bottom:0.35rem;}
+.lb-caption{font-size:0.82rem;color:var(--muted);font-weight:300;line-height:1.65;}
+.lb-close{position:absolute;top:0.75rem;right:0.75rem;background:rgba(255,255,255,0.18);border:none;color:white;font-size:1.4rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.lb-close:hover{background:rgba(255,255,255,0.35);}
+
+/* ── MISC ── */
+.random-wrap{text-align:center;margin-bottom:1.5rem;position:relative;z-index:2;}
+.btn-random{background:linear-gradient(135deg,var(--mint),var(--sky));color:white;border:none;padding:0.7rem 1.6rem;border-radius:99px;font-family:var(--sans);font-size:0.85rem;font-weight:600;cursor:pointer;box-shadow:0 5px 16px rgba(168,216,194,0.5);transition:transform 0.2s,box-shadow 0.2s;display:inline-flex;align-items:center;gap:0.5rem;}
+.btn-random:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 9px 24px rgba(168,216,194,0.55);}
+.section-heading{text-align:center;padding:0 1.25rem 1.25rem;position:relative;z-index:2;}
+.section-heading h2{font-family:var(--serif);font-size:1.45rem;font-weight:400;color:var(--ink);}
+.section-heading p{font-size:0.78rem;color:var(--muted);margin-top:0.3rem;}
+.section-divider{max-width:440px;margin:0 auto 2rem;padding:0;border:none;border-top:1px dashed rgba(242,167,184,0.45);position:relative;z-index:2;}
+.confetti-piece{position:fixed;pointer-events:none;z-index:9999;width:8px;height:8px;border-radius:2px;animation:confettiFall 1.4s ease-in forwards;}
+@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(230px) rotate(560deg)}}
+.loading-bar{display:none;text-align:center;padding:3rem;color:var(--muted);font-size:0.88rem;grid-column:1/-1;}
+.loading-bar.show{display:block;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink);color:white;padding:0.68rem 1.6rem;border-radius:99px;font-size:0.8rem;z-index:9998;transition:transform 0.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;font-weight:500;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+footer{text-align:center;padding:2rem 1rem;font-size:0.75rem;color:var(--muted);font-weight:300;border-top:1px dashed rgba(242,167,184,0.4);position:relative;z-index:2;}
+footer span{color:var(--pink);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  #gallery{grid-template-columns:repeat(3,1fr);gap:0.6rem 0.5rem;}
+  .card-img-wrap img{height:95px;}
+  .card-body{padding:0.45rem 0.5rem 0.3rem;}
+  .card-title{font-size:0.78rem;}
+  .card-actions{padding:0.3rem 0.5rem 0.45rem;}
+  .react-btn{padding:0.12rem 0.35rem;font-size:0.62rem;}
+  .gallery-wrap{padding:0 0.6rem 4rem;}
+  .polaroid{width:85px;}.polaroid img{height:65px;}
+}
+@media(max-width:380px){
+  #gallery{grid-template-columns:repeat(2,1fr);}
+  .polaroid{width:78px;}.polaroid img{height:58px;}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="hearts">💗 🌸 💗</span>
+      <h1>Kenangan <em>Kita</em></h1>
+      <p>abadikan setiap momen bersama</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Masuk</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Daftar</button>
+    </div>
+    <div id="loginForm">
+      <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="kamu@email.com" autocomplete="email"></div>
+      <div class="auth-field"><label>Kata Sandi</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-auth" id="btnLogin" onclick="doLogin()">Masuk ♡</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="auth-field"><label>Nama</label><input type="text" id="regName" placeholder="Nama kamu" autocomplete="name"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="regEmail" placeholder="kamu@email.com" autocomplete="email"></div>
+      <div class="auth-field"><label>Kata Sandi</label><input type="password" id="regPass" placeholder="min. 6 karakter" autocomplete="new-password"></div>
+      <button class="btn-auth" id="btnRegister" onclick="doRegister()">Buat Akun ♡</button>
+    </div>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+<div class="top-bar">
+  <div class="user-badge"><div class="user-avatar" id="userAvatar">?</div><span id="userEmail"></span></div>
+  <button class="btn-logout" onclick="doLogout()">Keluar</button>
+</div>
+<div class="stars" id="stars"></div>
+<header>
+  <div class="hearts-float">
+    <span style="--fd:2s;--fd2:0s">💗</span>
+    <span style="--fd:2.4s;--fd2:0.3s">🌸</span>
+    <span style="--fd:2s;--fd2:0.6s">💗</span>
+  </div>
+  <h1>Kenangan <em>Kita</em></h1>
+  <p class="header-sub">setiap momen adalah hadiah yang tak ternilai</p>
+  <div class="date-badge" id="startDate" title="Klik untuk ubah tanggal">Bersama sejak ...</div>
+</header>
+<div class="counter-row">
+  <div class="counter-pill">🎞️ <b id="totalMemories">0</b> kenangan</div>
+  <div class="counter-pill">📅 <b id="daysCount">0</b> hari bersama</div>
+  <div class="counter-pill">💌 <b id="totalReacts">0</b> reaksi cinta</div>
+</div>
+<div class="love-meter-wrap">
+  <div class="love-meter-card">
+    <div class="meter-icon">💓</div>
+    <div class="meter-bar-wrap">
+      <div class="meter-label">Love Meter hari ini</div>
+      <div class="meter-bar-bg"><div class="meter-bar-fill" id="loveFill"></div></div>
+      <div class="meter-val" id="loveVal">—</div>
+    </div>
+  </div>
+</div>
+<div class="quote-wrap">
+  <div class="quote-card" id="quoteCard">
+    <p class="quote-text" id="quoteText">Memuat kutipan cinta...</p>
+    <p class="quote-hint">✨ tap untuk kutipan baru</p>
+  </div>
+</div>
+<div class="section-heading"><h2>🧺 Foto Tergantung</h2><p>5 kenangan terbaru</p></div>
+<div class="clothesline-wrap" id="clotheslineWrap"><div class="rope"></div><div class="hang-row" id="hangRow"></div></div>
+<hr class="section-divider">
+<div class="upload-section">
+  <div class="upload-box" id="uploadBox">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div class="upload-icon">📷</div>
+    <h3>Tambah Kenangan Baru</h3>
+    <p>Tap pilih foto — boleh beberapa sekaligus</p>
+  </div>
+  <div id="captionForm">
+    <div class="preview-strip" id="previewStrip"></div>
+    <div class="form-field"><label>Judul Momen</label><input type="text" id="inputTitle" placeholder="contoh: Pertama kali ke pantai"></div>
+    <div class="form-field"><label>Tanggal</label><input type="date" id="inputDate"></div>
+    <div class="form-field"><label>Cerita di Balik Foto</label><textarea id="inputCaption" placeholder="Tuliskan apa yang kamu rasakan..."></textarea></div>
+    <div class="form-field"><label>Suasana Hati</label><div class="mood-row" id="moodRow"></div></div>
+    <div class="form-field"><label>Tag (pisah koma)</label><input type="text" id="inputTags" placeholder="pantai, liburan, senja"></div>
+    <button class="btn-save" id="saveBtn">Simpan Kenangan ♡</button>
+  </div>
+</div>
+<div class="section-heading" style="padding-bottom:0.5rem"><h2>📸 Galeri Bersama</h2><p>semua kenangan dari semua orang yang bergabung 🌸</p></div>
+<div class="filter-bar" id="filterBar"><button class="filter-btn active" data-tag="semua">Semua</button></div>
+<div class="random-wrap" id="randomWrap" style="display:none"><button class="btn-random" id="randomBtn">🎲 Kenangan Acak!</button></div>
+<div class="gallery-wrap">
+  <div class="loading-bar" id="loadingBar">🌸 Memuat kenangan...</div>
+  <div id="gallery"></div>
+</div>
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">×</button>
+  <div class="lightbox-inner">
+    <div class="lb-img-wrap">
+      <img id="lbImg" src="" alt="">
+      <button class="lb-nav prev" id="lbPrev">‹</button>
+      <button class="lb-nav next" id="lbNext">›</button>
+    </div>
+    <div class="lb-dots" id="lbDots"></div>
+    <div class="lb-body">
+      <p class="lb-date" id="lbDate"></p>
+      <p class="lb-title" id="lbTitle"></p>
+      <p class="lb-caption" id="lbCaption"></p>
+    </div>
+  </div>
+</div>
+<footer>dibuat dengan penuh cinta <span>♡</span> untuk semua kenangan indah kita</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://vcjxgfcbfuwvjqbbnphv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjanhnZmNiZnV3dmpxYmJucGh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5OTg1OTEsImV4cCI6MjA5NTU3NDU5MX0.qnBaNAFw0NHYdrZoQasIWIwgNWOcE2k3iNTV9d2j634';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MOODS=['💖 Romantis','😂 Lucu','🥹 Terharu','🎉 Seru','😍 Kagum','🌙 Tenang'];
+const QUOTES=["Bersamamu, setiap hari terasa seperti petualangan baru.","Cinta bukan tentang seberapa lama kita bersama, tapi seberapa bermakna setiap momennya.","Kamu adalah alasan saya tersenyum tanpa alasan.","Di setiap fotomu, ada cerita yang selalu ingin kuulang.","Kenangan indah bukan dibeli, tapi diciptakan bersama orang yang tepat.","Matamu adalah tempat favorit saya untuk tersesat.","Setiap detik bersamamu adalah hadiah yang tidak ternilai.","Tidak ada tempat yang lebih nyaman dari pelukanmu.","Kamu adalah rumah yang selalu ingin aku pulang ke sana.","Bersama kamu, hidup terasa jauh lebih berwarna."];
+const STICKERS=['🌸','⭐','🌈','🎀','🍓','🌷','🦋','☁️','🌙','🍬'];
+const COLORS=['#F2A7B8','#A8D8C2','#C4B5E8','#F9C89B','#9DCFEA'];
+const SK_KEY='kenangan_start';
+
+let memories=[],reacts={},pendingFiles=[],activeTag='semua',lbMemoIdx=0,lbImgIdx=0,currentUser=null,selectedMood='';
+
+function showToast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+
+function switchTab(tab){
+  document.getElementById('loginForm').style.display=tab==='login'?'':'none';
+  document.getElementById('registerForm').style.display=tab==='register'?'':'none';
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('tabRegister').classList.toggle('active',tab==='register');
+  document.getElementById('authMsg').textContent='';
+  document.getElementById('authMsg').className='auth-msg';
+}
+function setAuthMsg(msg,type='error'){const el=document.getElementById('authMsg');el.textContent=msg;el.className='auth-msg '+type;}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass)return setAuthMsg('Isi email dan kata sandi dulu ya 💌');
+  const btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Sedang masuk...';
+  const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='Masuk ♡';
+  if(error)return setAuthMsg(error.message==='Invalid login credentials'?'Email atau kata sandi salah 💔':error.message);
+  onLogin(data.user);
+}
+
+async function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pass=document.getElementById('regPass').value;
+  if(!name||!email||!pass)return setAuthMsg('Lengkapi semua kolom dulu ya 💌');
+  if(pass.length<6)return setAuthMsg('Kata sandi minimal 6 karakter 🔒');
+  const btn=document.getElementById('btnRegister');btn.disabled=true;btn.textContent='Membuat akun...';
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  btn.disabled=false;btn.textContent='Buat Akun ♡';
+  if(error)return setAuthMsg(error.message);
+  if(data.user&&data.session){onLogin(data.user);}
+  else{setAuthMsg('Akun berhasil dibuat! Cek email untuk verifikasi 📧','success');}
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null;memories=[];reacts={};
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('authOverlay').classList.remove('hidden');
+  switchTab('login');
+}
+
+function onLogin(user){
+  currentUser=user;
+  document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('mainApp').style.display='';
+  const name=user.user_metadata?.full_name||user.email;
+  document.getElementById('userEmail').textContent=name;
+  document.getElementById('userAvatar').textContent=(name[0]||'?').toUpperCase();
+  initApp();
+}
+
+async function checkSession(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session)onLogin(session.user);
+}
+
+function initApp(){
+  initStars();initStartDate();initLoveMeter();initQuotes();initMoodButtons();initUpload();loadMemories();initLightbox();
+  document.getElementById('randomBtn').addEventListener('click',()=>{
+    const f=activeTag==='semua'?memories:memories.filter(m=>(m.tags||[]).includes(activeTag));
+    if(!f.length)return;
+    openLightbox(memories.indexOf(f[Math.floor(Math.random()*f.length)]));
+  });
+}
+
+function initStars(){
+  const wrap=document.getElementById('stars');wrap.innerHTML='';
+  for(let i=0;i<28;i++){const s=document.createElement('div');s.className='star';const sz=2+Math.random()*5;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;--delay:${Math.random()*4}s;background:${COLORS[i%5]};opacity:0.2;border-radius:${Math.random()>0.5?'50%':'2px'}`;wrap.appendChild(s);}
+}
+
+let startDate=localStorage.getItem(SK_KEY);
+function initStartDate(){
+  const sdEl=document.getElementById('startDate');
+  function renderSD(){
+    if(!startDate)return;
+    const d=new Date(startDate);
+    sdEl.textContent='Bersama sejak '+d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('daysCount').textContent=Math.floor((Date.now()-d.getTime())/(864e5)).toLocaleString('id-ID');
+  }
+  if(!startDate){startDate=prompt('Sejak tanggal berapa kalian bersama?\n(format: YYYY-MM-DD, contoh: 2023-02-14)')||'';if(startDate)localStorage.setItem(SK_KEY,startDate);}
+  renderSD();
+  sdEl.addEventListener('click',()=>{const nd=prompt('Ganti tanggal mulai (YYYY-MM-DD):',startDate);if(nd){startDate=nd;localStorage.setItem(SK_KEY,nd);renderSD();}});
+}
+
+function initLoveMeter(){
+  const val=Math.min(99,Math.max(70,60+Math.floor(Math.sin(Date.now()/100000)*20)+Math.floor(Math.random()*15)));
+  setTimeout(()=>{document.getElementById('loveFill').style.width=val+'%';document.getElementById('loveVal').textContent=val+'% — lagi sayang-sayangnya! 💕';},600);
+}
+
+function initQuotes(){
+  let qIdx=Math.floor(Math.random()*QUOTES.length);
+  function showQ(){document.getElementById('quoteText').textContent='"'+QUOTES[qIdx]+'"';qIdx=(qIdx+1)%QUOTES.length;}
+  showQ();
+  document.getElementById('quoteCard').addEventListener('click',()=>{const el=document.getElementById('quoteText');el.style.transition='opacity 0.2s';el.style.opacity='0';setTimeout(()=>{showQ();el.style.opacity='1';},200);});
+}
+
+function initMoodButtons(){
+  const row=document.getElementById('moodRow');row.innerHTML='';
+  MOODS.forEach(m=>{const btn=document.createElement('button');btn.className='mood-btn';btn.textContent=m;btn.addEventListener('click',()=>{row.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedMood=m;});row.appendChild(btn);});
+}
+
+function initUpload(){
+  const fi=document.getElementById('fileInput'),ub=document.getElementById('uploadBox');
+  ub.addEventListener('dragover',e=>{e.preventDefault();ub.classList.add('drag-over');});
+  ub.addEventListener('dragleave',()=>ub.classList.remove('drag-over'));
+  ub.addEventListener('drop',e=>{e.preventDefault();ub.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+  fi.addEventListener('change',()=>handleFiles(fi.files));
+  document.getElementById('saveBtn').addEventListener('click',saveMemory);
+}
+
+function handleFiles(files){
+  if(!files.length)return;
+  pendingFiles=[];
+  const strip=document.getElementById('previewStrip');strip.innerHTML='';
+  let loaded=0;
+  Array.from(files).forEach((f,i)=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      pendingFiles[i]=ev.target.result;loaded++;
+      const img=document.createElement('img');img.src=ev.target.result;img.className='preview-thumb'+(i===0?' selected':'');
+      img.addEventListener('click',()=>{strip.querySelectorAll('.preview-thumb').forEach(t=>t.classList.remove('selected'));img.classList.add('selected');});
+      strip.appendChild(img);
+      if(loaded===files.length){document.getElementById('captionForm').style.display='block';document.getElementById('inputDate').valueAsDate=new Date();document.getElementById('fileInput').value='';}
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+async function saveMemory(){
+  const imgs=pendingFiles.filter(Boolean);if(!imgs.length)return;
+  const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Menyimpan...';
+  const title=document.getElementById('inputTitle').value.trim()||'Momen Indah';
+  const date=document.getElementById('inputDate').value;
+  const caption=document.getElementById('inputCaption').value.trim();
+  const tagsRaw=document.getElementById('inputTags').value.trim();
+  const tags=tagsRaw?tagsRaw.split(',').map(t=>t.trim()).filter(Boolean):[];
+  const sticker=STICKERS[Math.floor(Math.random()*STICKERS.length)];
+  const ownerNameSave=(currentUser.user_metadata?.full_name||currentUser.email||'').split(' ')[0];
+  const{data,error}=await sb.from('memories').insert({user_id:currentUser.id,owner_name:ownerNameSave,title,date,caption,tags,mood:selectedMood,sticker,images:imgs}).select().single();
+  btn.disabled=false;btn.textContent='Simpan Kenangan ♡';
+  if(error){showToast('Gagal menyimpan 💔 '+error.message);return;}
+  memories.unshift(data);reacts[data.id]={};
+  document.getElementById('captionForm').style.display='none';
+  ['inputTitle','inputCaption','inputTags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('moodRow').querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+  selectedMood='';pendingFiles=[];
+  spawnConfetti();renderAll();showToast('Kenangan tersimpan! 🌸');
+}
+
+async function loadMemories(){
+  document.getElementById('loadingBar').classList.add('show');
+  // Ambil SEMUA kenangan dari semua pengguna (publik)
+  const{data:mems,error}=await sb.from('memories').select('*').order('created_at',{ascending:false});
+  if(error){showToast('Gagal memuat kenangan 💔');document.getElementById('loadingBar').classList.remove('show');return;}
+  memories=mems||[];
+  const ids=memories.map(m=>m.id);
+  if(ids.length){
+    const{data:rData}=await sb.from('reacts').select('*').in('memory_id',ids);
+    reacts={};
+    (rData||[]).forEach(r=>{if(!reacts[r.memory_id])reacts[r.memory_id]={};reacts[r.memory_id][r.emoji]=r.count;});
+  }else{reacts={};}
+  document.getElementById('loadingBar').classList.remove('show');
+  renderAll();
+}
+
+function spawnConfetti(){
+  const cx=window.innerWidth/2,cy=window.innerHeight*0.45;
+  const cols=['#F2A7B8','#A8D8C2','#C4B5E8','#F9C89B','#9DCFEA','#F7E47A'];
+  for(let i=0;i<44;i++){const el=document.createElement('div');el.className='confetti-piece';const shapes=['50%','2px','6px'];el.style.cssText=`left:${cx+(Math.random()-0.5)*240}px;top:${cy}px;background:${cols[i%cols.length]};animation-delay:${Math.random()*0.35}s;transform:rotate(${Math.random()*360}deg);border-radius:${shapes[i%3]}`;document.body.appendChild(el);setTimeout(()=>el.remove(),1900);}
+}
+
+function renderClothesline(){
+  const row=document.getElementById('hangRow');row.innerHTML='';
+  const recent=memories.slice(0,5);
+  if(!recent.length){document.getElementById('clotheslineWrap').style.minHeight='60px';return;}
+  document.getElementById('clotheslineWrap').style.minHeight='200px';
+  const rots=[-4,3,-2,5,-3];
+  recent.forEach((m,i)=>{
+    const div=document.createElement('div');div.className='photo-hang';
+    div.style.setProperty('--rot',rots[i%rots.length]+'deg');div.style.animationDelay=(i*0.12)+'s';
+    div.innerHTML=`<div class="pin" style="background:${COLORS[i%COLORS.length]}"></div><div class="hang-string"></div><div class="polaroid"><img src="${m.images[0]}" alt="${m.title}" loading="lazy"><div class="polaroid-caption"><span>${m.title}</span></div><div class="polaroid-sticker">${m.sticker||'🌸'}</div></div>`;
+    div.addEventListener('click',()=>openLightbox(memories.indexOf(m)));row.appendChild(div);
+  });
+}
+
+function renderGallery(){
+  const el=document.getElementById('gallery');
+  const filtered=activeTag==='semua'?memories:memories.filter(m=>(m.tags||[]).includes(activeTag));
+  document.getElementById('randomWrap').style.display=filtered.length>1?'block':'none';
+  if(!filtered.length){el.innerHTML=`<div class="empty-state"><span class="empty-icon">🎞️</span><p>Belum ada kenangan di sini.<br>Ayo tambah foto pertama! ♡</p></div>`;return;}
+  const rots=[-1.5,1.2,-0.8,1.8,-1.2,0.6,-2,1.5];
+  el.innerHTML=filtered.map((m,fi)=>{
+    const realIdx=memories.indexOf(m);
+    const dateStr=m.date?new Date(m.date+'T00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
+    const tagHtml=(m.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
+    const myReacts=reacts[m.id]||{};
+    const isOwner=currentUser&&m.user_id===currentUser.id;
+    const ownerName=m.owner_name||'';
+    const ownerBadge=ownerName?`<span class="owner-badge">👤 ${ownerName}</span>`:'';
+    const emojiRow=['❤️','😂','🥹','🎉'].map(e=>{const cnt=myReacts[e]||0;return `<button class="react-btn ${cnt?'reacted':''}" data-idx="${realIdx}" data-e="${e}">${e}${cnt?' '+cnt:''}</button>`;}).join('');
+    return `<div class="memory-card" style="--card-rot:${rots[fi%rots.length]}deg;animation-delay:${fi*0.06}s">
+      <div class="card-string"><div class="card-pin pin-c${fi%5}"></div><div class="card-string-line"></div></div>
+      ${m.mood?`<div class="mood-ribbon">${m.mood}</div>`:''}
+      <div class="card-img-wrap" onclick="openLightbox(${realIdx})">
+        <img src="${m.images[0]}" alt="${m.title}" loading="lazy">
+        ${(m.images||[]).length>1?`<div class="multi-badge">+${m.images.length-1}</div>`:''}
+      </div>
+      <div class="card-body">
+        ${dateStr?`<p class="card-date">📅 ${dateStr}</p>`:''}
+        <p class="card-title">${m.sticker||''} ${m.title}</p>
+        ${m.caption?`<p class="card-caption">${m.caption}</p>`:''}
+        ${ownerBadge?`<p class="card-owner">${ownerBadge}</p>`:''}
+        ${tagHtml?`<div class="card-tags">${tagHtml}</div>`:''}
+      </div>
+      <div class="card-actions">
+        <div class="card-react-row">${emojiRow}</div>
+        ${isOwner?`<button class="del-btn" onclick="deleteMemory(${m.id})">🗑️</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.react-btn').forEach(btn=>{
+    btn.addEventListener('click',async(ev)=>{
+      ev.stopPropagation();
+      const idx=+btn.dataset.idx,e=btn.dataset.e,id=memories[idx].id;
+      if(!reacts[id])reacts[id]={};
+      reacts[id][e]=(reacts[id][e]||0)+1;
+      await sb.from('reacts').upsert({user_id:currentUser.id,memory_id:id,emoji:e,count:reacts[id][e]},{onConflict:'user_id,memory_id,emoji'});
+      updateCounter();renderGallery();
+    });
+  });
+}
+
+function renderFilters(){
+  const bar=document.getElementById('filterBar');
+  const tags=[...new Set(memories.flatMap(m=>m.tags||[]))];
+  bar.innerHTML=`<button class="filter-btn ${activeTag==='semua'?'active':''}" data-tag="semua">Semua (${memories.length})</button>`;
+  tags.forEach(t=>{const cnt=memories.filter(m=>(m.tags||[]).includes(t)).length;const btn=document.createElement('button');btn.className='filter-btn'+(activeTag===t?' active':'');btn.dataset.tag=t;btn.textContent=`${t} (${cnt})`;bar.appendChild(btn);});
+  bar.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{activeTag=b.dataset.tag;renderFilters();renderGallery();}));
+}
+
+function updateCounter(){
+  document.getElementById('totalMemories').textContent=memories.length;
+  document.getElementById('totalReacts').textContent=Object.values(reacts).reduce((s,v)=>s+Object.values(v).reduce((a,b)=>a+b,0),0);
+}
+
+async function deleteMemory(id){
+  if(!confirm('Hapus kenangan ini? 💔'))return;
+  const{error}=await sb.from('memories').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error){showToast('Gagal menghapus 💔');return;}
+  memories=memories.filter(m=>m.id!==id);delete reacts[id];
+  renderAll();showToast('Kenangan dihapus 💔');
+}
+
+function initLightbox(){
+  document.getElementById('lbPrev').addEventListener('click',()=>{const m=memories[lbMemoIdx];lbImgIdx=(lbImgIdx-1+m.images.length)%m.images.length;updateLightbox();});
+  document.getElementById('lbNext').addEventListener('click',()=>{const m=memories[lbMemoIdx];lbImgIdx=(lbImgIdx+1)%m.images.length;updateLightbox();});
+  document.getElementById('lbClose').addEventListener('click',()=>document.getElementById('lightbox').classList.remove('open'));
+  document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===document.getElementById('lightbox'))document.getElementById('lightbox').classList.remove('open');});
+}
+function openLightbox(idx){lbMemoIdx=idx;lbImgIdx=0;updateLightbox();document.getElementById('lightbox').classList.add('open');}
+function updateLightbox(){
+  const m=memories[lbMemoIdx];if(!m)return;
+  document.getElementById('lbImg').src=m.images[lbImgIdx];
+  document.getElementById('lbDate').textContent=m.date?new Date(m.date+'T00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
+  document.getElementById('lbTitle').textContent=(m.sticker||'')+' '+m.title;
+  document.getElementById('lbCaption').textContent=m.caption||'';
+  const dots=document.getElementById('lbDots');dots.innerHTML='';
+  if(m.images.length>1){m.images.forEach((_,i)=>{const d=document.createElement('div');d.className='lb-dot'+(i===lbImgIdx?' active':'');d.addEventListener('click',()=>{lbImgIdx=i;updateLightbox();});dots.appendChild(d);});}
+  document.getElementById('lbPrev').style.display=m.images.length>1?'flex':'none';
+  document.getElementById('lbNext').style.display=m.images.length>1?'flex':'none';
+}
+
+function renderAll(){updateCounter();renderClothesline();renderFilters();renderGallery();}
+
+checkSession();
+</script>
+</body>
+</html>
